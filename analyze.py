@@ -5,7 +5,7 @@ import sys
 con = lite.connect('sampleTissueTypeCounts.db'); #initilazing output file
 cur = con.cursor() #save cursor to var
 cur.execute("DROP TABLE IF EXISTS tissue") #if this table doesn't exist, create it.
-cur.execute("CREATE TABLE tissue (sample text, ntcount real, tncount real)")#vals in each col of table
+cur.execute("CREATE TABLE tissue (sample text, gene text, ntcount real, tncount real)")#vals in each col of table
 
 meninFile = 'menin_cca';
 cabinet = [];
@@ -13,18 +13,20 @@ tmpList = [];
 listCheck = [];
 
 class Sample:
-    def __init__(self, samplename, tissuetype, expressionvalue):
+    def __init__(self, samplename, genename, tissuetype, expressionvalue):
         self.name = samplename[:12]
         self.add_tissue_expression(tissuetype, expressionvalue)
+        self.gene = genename
 
     def add_tissue_expression(self, tissuetype, expressionvalue):
         if (tissuetype == 'NT'):
             self.nt_count = expressionvalue
         else:
             self.tn_count = expressionvalue
-
+    gene = 'none'
     tn_count = -1
     nt_count = -1
+
 fileFound = False;
 #This script reads in all samples but if they don't have doubles
 # by the end, i delete them. Then write to db.
@@ -42,7 +44,7 @@ with open (meninFile, 'rb') as f:
                     fileFound = True;
             if (fileFound == False):
                 print '\ttemporarily adding new sample to cabinet.\n'
-                x = Sample(line[2],line[3],line[1])
+                x = Sample(line[2],line[0],line[3],line[1])
                 cabinet.append(x)
 
 print '\n',"-"*63, '\n',"Now executing the cabinet to table, 'tissue', in database file."
@@ -52,13 +54,13 @@ for x in cabinet:
         del x
     else:
         tmpList = [];
-        tmpList.extend([x.name, x.nt_count, x.tn_count]);
-        cur.execute('INSERT INTO tissue VALUES (?,?,?)', tmpList)
+        tmpList.extend([x.name, x.gene, x.nt_count, x.tn_count]);
+
+        cur.execute('INSERT INTO tissue VALUES (?,?,?,?)', tmpList)
 
 print '\n', "-"*36,'\n','Printing current table from database','\n',"-"*36
 print "samplename\t\t  nt_count\ttn_count.",'\n',"-"*36
 cur.execute("SELECT * FROM tissue") #this is basic mysqlite and it's pretty simple!
-# you can also select from genes to see the other table!
 rows = cur.fetchall()
 for row in rows:
     print row
