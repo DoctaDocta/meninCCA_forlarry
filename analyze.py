@@ -55,15 +55,17 @@ for x in cabinet:
     else:
         tmpList = [];
         tmpList.extend([x.name, x.gene, x.nt_count, x.tn_count]);
-
         cur.execute('INSERT INTO tissue VALUES (?,?,?,?)', tmpList)
+        del x
 
 print '\n', "-"*36,'\n','Printing current table from database','\n',"-"*36
-print "samplename\t\t  nt_count\ttn_count.",'\n',"-"*36
+print "samplename\t geneId  nt_count\ttn_count.",'\n',"-"*36
 cur.execute("SELECT * FROM tissue") #this is basic mysqlite and it's pretty simple!
 rows = cur.fetchall()
 for row in rows:
     print row
+    if (row[1] == u'MEN1|4221'):
+        print 'booyah bitch. fuck the government.'
 print "-"*36
 
 con.commit() #close the connection
